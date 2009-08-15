@@ -1,0 +1,43 @@
+= ICUnicode
+
+Unicode sorting is complicated (http://unicode.org/reports/tr10), and Ruby doesn't do it
+correctly. But there is a widely-used implementation of the Unicode collation algorithm in
+the ICU (International Components for Unicode) libraries. There is also no way to do
+Transliteration in Ruby (http://userguide.icu-project.org/transforms/general). This gem is
+a simple C wrapper around ucol_getSortKey from the ICU Collation API and utrans_transUChars
+from the ICU Transliteration API. These are added as simple methods on String.
+
+== Usage:
+
+  ["cafe", "cafes", "caf\303\251"].sort
+  => ["cafe", "cafes", "caf\303\251"]
+   
+  require 'icunicode'
+
+  ["cafe", "cafes", "caf\303\251"].sort_by {|s| s.unicode_sort_key}
+  => ["cafe", "caf\303\251", "cafes"]
+
+  "blueberry".transliterate("Katakana").transliterate("Latin")
+  => "burueberrui"
+
+  "blueberry".transliterate("Greek").transliterate("Latin")
+  => "blyeberry"
+
+== Install:
+
+You must install ICU first. You can download the source from http://site.icu-project.org/download,
+or on Mac, you can install with MacPorts:
+
+  sudo port install icu
+
+Then install the gem:
+
+  sudo gem install ninjudd-icunicode -s http://gems.github.com
+
+== To do:
+
+Add support for locales other than en-US. Increase buffer size or make it grow dynamically.
+
+== License:
+
+Copyright (c) 2009 Justin Balthrop, Geni.com; Published under The MIT License, see LICENSE
