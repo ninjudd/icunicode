@@ -6,6 +6,9 @@
  
 #define BUF_SIZE 1000
 
+VALUE cTransliterator;
+VALUE trans_hash;
+
 static void to_utf16(VALUE string, UChar *ustr, int32_t *ulen) {
   UErrorCode status = U_ZERO_ERROR; 
 
@@ -50,36 +53,59 @@ static VALUE unicode_sort_key(VALUE string) {
   return rb_str_new(str, len - 1);
 }
 
+static void trans_free(void *trans) {
+  utrans_close(trans);
+}
+
+static UTransliterator* get_trans(VALUE transform) {
+  UChar str[BUF_SIZE];
+  int32_t len = 0;
+  UTransliterator *trans;
+  UErrorCode status = U_ZERO_ERROR; 
+  VALUE obj;
+
+  obj = rb_hash_aref(trans_hash, transform);
+  if (NIL_P(obj)) {
+    to_utf16(transform, str, &len);
+    trans = utrans_openU(str, len, UTRANS_FORWARD, NULL, 0, NULL, &status);
+    if (trans) {
+      obj = Data_Wrap_Struct(rb_cObject, 0, trans_free, trans);
+      rb_hash_aset(trans_hash, transform, obj);
+    } else {
+      rb_raise(rb_eArgError, "invalid transform: %s", RSTRING_PTR(transform));
+    }
+  }
+
+  Data_Get_Struct(obj, UTransliterator, trans);
+  return trans;
+}
+
 /*
  * call-seq:
- * string.transliterate(transform) -> string
+ * string.transliterate(transform_string) -> string
  *
  * Transliterates string using transform.
  *
  */
 static VALUE unicode_transliterate(VALUE string, VALUE transform) {
   UChar str[BUF_SIZE];
-  UChar trn[BUF_SIZE];
   int32_t slen = 0;
-  int32_t tlen = 0;
-  UErrorCode  status = U_ZERO_ERROR; 
+  UErrorCode status = U_ZERO_ERROR; 
   UTransliterator *trans;
+  VALUE tobj;
 
-  to_utf16(string,    str, &slen);
-  to_utf16(transform, trn, &tlen);
+  to_utf16(string, str, &slen);
 
-  trans = utrans_openU(trn, tlen, UTRANS_FORWARD, NULL, 0, NULL, &status);
-  if (trans) {
-    utrans_transUChars(trans, str, &slen, BUF_SIZE, 0, &slen, &status);
-    utrans_close(trans);
-  } else {
-    rb_raise(rb_eArgError, "invalid transform: %s", RSTRING_PTR(transform));
-  }
+  trans = get_trans(transform);
+  utrans_transUChars(trans, str, &slen, BUF_SIZE, 0, &slen, &status);
 
   to_utf8(str, slen);
 }
- 
+
 void Init_icunicode() {
   rb_define_method(rb_cString, "unicode_sort_key", unicode_sort_key, 0);
   rb_define_method(rb_cString, "transliterate", unicode_transliterate, 1);
+
+  trans_hash = rb_hash_new();
+  rb_global_variable(&trans_hash);
 }
