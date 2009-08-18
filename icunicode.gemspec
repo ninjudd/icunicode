@@ -1,10 +1,10 @@
 Gem::Specification.new do |s|
   s.name = %q{icunicode}
-  s.version = "0.0.1"
+  s.version = "0.0.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Justin Balthrop"]
-  s.date = %q{2009-08-15}
+  s.date = %q{2009-08-17}
   s.description = %q{ICU Unicode Transliteration and Collation in Ruby.}
   s.email = %q{code@justinbalthrop.com}
   s.extensions = ["ext/extconf.rb"]
