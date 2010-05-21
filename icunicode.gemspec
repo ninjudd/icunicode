@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{icunicode}
-  s.version = "0.1.1"
+  s.version = "0.1.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Justin Balthrop"]
@@ -27,7 +27,6 @@ Gem::Specification.new do |s|
      "ext/LICENSE_AFL3",
      "ext/Makefile",
      "ext/extconf.rb",
-     "ext/icu4c-4_4_1-src.tgz",
      "ext/icunicode.c",
      "icunicode.gemspec",
      "test/icunicode_test.rb",
