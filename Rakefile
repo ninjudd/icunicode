@@ -1,57 +1,60 @@
+require 'rubygems'
 require 'rake'
-require 'rake/testtask'
-require 'rake/rdoctask'
 
 begin
   require 'jeweler'
-  Jeweler::Tasks.new do |s|
-    s.name = "icunicode"
-    s.summary = %Q{Unicode Transliteration and Collation in Ruby.}
-    s.email = "code@justinbalthrop.com"
-    s.homepage = "http://github.com/ninjudd/unicode_collation"
-    s.description = "ICU Unicode Transliteration and Collation in Ruby."
-    s.authors = ["Justin Balthrop"]
-    s.files = ["README.rdoc", "VERSION.yml", "ext/icunicode.c", "ext/extconf.rb", "test/test_helper.rb", "test/icunicode_test.rb"]
-    s.extensions = ["ext/extconf.rb"]
-    s.require_paths = ["ext"]
+  Jeweler::Tasks.new do |gem|
+    gem.name = "icunicode"
+    gem.summary = %Q{Unicode Transliteration and Collation in Ruby.}
+    gem.description = "ICU Unicode Transliteration and Collation in Ruby."
+    gem.email = "code@justinbalthrop.com"
+    gem.homepage = "http://github.com/ninjudd/icunicode"
+    gem.authors = ["Justin Balthrop"]
+    # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
   end
+  Jeweler::GemcutterTasks.new
 rescue LoadError
-  puts "Jeweler not available. Install it with: sudo gem install technicalpickles-jeweler -s http://gems.github.com"
+  puts "Jeweler (or a dependency) not available. Install it with: sudo gem install jeweler"
 end
 
-Rake::TestTask.new do |t|
-  t.libs << "ext"
-  t.pattern = 'test/**/*_test.rb'
-  t.verbose = false
-end
-
-Rake::RDocTask.new do |rdoc|
-  rdoc.rdoc_dir = 'rdoc'
-  rdoc.title    = 'tuple'
-  rdoc.options << '--line-numbers' << '--inline-source'
-  rdoc.rdoc_files.include('README*')
-  rdoc.rdoc_files.include('lib/**/*.rb')
+require 'rake/testtask'
+Rake::TestTask.new(:test) do |test|
+  test.libs << 'lib' << 'test'
+  test.pattern = 'test/**/*_test.rb'
+  test.verbose = true
 end
 
 begin
   require 'rcov/rcovtask'
-  Rcov::RcovTask.new do |t|
-    t.libs << 'test'
-    t.test_files = FileList['test/**/*_test.rb']
-    t.verbose = true
+  Rcov::RcovTask.new do |test|
+    test.libs << 'test'
+    test.pattern = 'test/**/*_test.rb'
+    test.verbose = true
   end
 rescue LoadError
+  task :rcov do
+    abort "RCov is not available. In order to run rcov, you must: sudo gem install spicycode-rcov"
+  end
 end
 
-desc "Clean"
-task :clean do
-  include FileUtils
-  Dir.chdir('ext') do
-    rm Dir.glob('*.{o,bundle,so}')
-    rm_f 'Makefile'
-    rm_f 'mkmf.log'
-  end
-  rm_rf 'pkg'
-end
+task :test => :check_dependencies
 
 task :default => :test
+
+task :clean do
+  `rm -rf ext/lib ext/bin ext/sbin ext/share ext/include`
+end
+
+require 'rake/rdoctask'
+Rake::RDocTask.new do |rdoc|
+  if File.exist?('VERSION')
+    version = File.read('VERSION')
+  else
+    version = ""
+  end
+
+  rdoc.rdoc_dir = 'rdoc'
+  rdoc.title = "icunicode #{version}"
+  rdoc.rdoc_files.include('README*')
+  rdoc.rdoc_files.include('lib/**/*.rb')
+end
