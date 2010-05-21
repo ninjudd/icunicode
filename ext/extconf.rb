@@ -5,7 +5,14 @@ require 'mkmf'
 require 'rbconfig'
 
 HERE   = File.expand_path(File.dirname(__FILE__))
-BUNDLE = Dir.glob("icu4c-*.tgz").first
+BUNDLE = "icu4c-4_4_1-src.tgz"
+REPO   = "http://download.icu-project.org/files/icu4c/4.4.1"
+GET    = `which curl`.empty? ? "wget -O" : "curl -L -o"
+
+def sh(cmd)
+  puts(cmd)
+  raise "'#{cmd}' failed" unless system(cmd)
+end
 
 if !ENV["EXTERNAL_LIB"]
   $includes    = " -I#{HERE}/include"
@@ -20,18 +27,13 @@ if !ENV["EXTERNAL_LIB"]
       puts "ICU already built; run 'rake clean' first if you need to rebuild."
     else
       puts "Building ICU."
-      puts(cmd = "tar xzf #{BUNDLE} 2>&1")
-      raise "'#{cmd}' failed" unless system(cmd)
+      sh("#{GET} #{BUNDLE} #{REPO}/#{BUNDLE}")
+      sh("tar xzf #{BUNDLE} 2>&1")
 
       Dir.chdir("icu/source") do
-        puts(cmd = "./configure --prefix=#{HERE} --disable-shared --enable-static 2>&1")
-        raise "'#{cmd}' failed" unless system(cmd)
-
-        puts(cmd = "make || true 2>&1")
-        raise "'#{cmd}' failed" unless system(cmd)
-
-        puts(cmd = "make install || true 2>&1")
-        raise "'#{cmd}' failed" unless system(cmd)
+        sh("./configure --prefix=#{HERE} --disable-shared --enable-static 2>&1")
+        sh("make || true 2>&1")
+        sh("make install || true 2>&1")
       end
 
       system("rm -rf icu") unless ENV['DEBUG'] or ENV['DEV']
