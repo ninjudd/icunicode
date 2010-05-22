@@ -37,7 +37,10 @@ rescue LoadError
   end
 end
 
-task :test => :check_dependencies
+task :test => :check_dependencies do
+  `cd ext && ruby extconf.rb && make && cp icunicode.bundle icunicode.o ../test/`
+end
+
 
 task :default => :test
 

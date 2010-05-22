@@ -1,10 +1,5 @@
+Makefile
 *.bundle
 *.o
 *.so
 mkmf.log
-bin
-sbin
-lib
-share
-include
-icu

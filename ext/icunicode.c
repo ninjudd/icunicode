@@ -3,14 +3,14 @@
 #include "unicode/utrans.h"
 #include "unicode/ustring.h"
 #include "unicode/ustdio.h"
- 
+
 #define BUF_SIZE 1000
 
 VALUE cTransliterator;
 VALUE trans_hash;
 
 static void to_utf16(VALUE string, UChar *ustr, int32_t *ulen) {
-  UErrorCode status = U_ZERO_ERROR; 
+  UErrorCode status = U_ZERO_ERROR;
 
   string = StringValue(string);
   u_strFromUTF8(ustr, BUF_SIZE, ulen, RSTRING_PTR(string), RSTRING_LEN(string), &status);
@@ -20,7 +20,7 @@ static void to_utf16(VALUE string, UChar *ustr, int32_t *ulen) {
 static VALUE to_utf8(UChar *ustr, int32_t ulen) {
   char str[BUF_SIZE];
   int32_t len = 0;
-  UErrorCode status = U_ZERO_ERROR; 
+  UErrorCode status = U_ZERO_ERROR;
 
   u_strToUTF8(str, BUF_SIZE, &len, ustr, ulen, &status);
   if (status == U_INVALID_CHAR_FOUND) len = 0;
@@ -39,17 +39,17 @@ static VALUE unicode_sort_key(VALUE string) {
   UChar ustr[BUF_SIZE];
   int32_t len  = 0;
   int32_t ulen = 0;
-  UErrorCode status = U_ZERO_ERROR; 
+  UErrorCode status = U_ZERO_ERROR;
   UCollator *col;
 
   to_utf16(string, ustr, &ulen);
 
-  col = ucol_open("en_US", &status); 
+  col = ucol_open("en_US", &status);
   if (U_SUCCESS(status)) {
     len = ucol_getSortKey(col, ustr, ulen, (uint8_t*)str, BUF_SIZE);
     ucol_close(col);
-  }    
-  
+  }
+
   return rb_str_new(str, len - 1);
 }
 
@@ -61,7 +61,7 @@ static UTransliterator* get_trans(VALUE transform) {
   UChar str[BUF_SIZE];
   int32_t len = 0;
   UTransliterator *trans;
-  UErrorCode status = U_ZERO_ERROR; 
+  UErrorCode status = U_ZERO_ERROR;
   VALUE obj;
 
   obj = rb_hash_aref(trans_hash, transform);
@@ -87,12 +87,15 @@ static UTransliterator* get_trans(VALUE transform) {
  * Transliterates string using transform.
  *
  */
-static VALUE unicode_transliterate(VALUE string, VALUE transform) {
+static VALUE unicode_transliterate(int argc, VALUE *argv, VALUE string) {
   UChar str[BUF_SIZE];
   int32_t slen = 0;
-  UErrorCode status = U_ZERO_ERROR; 
+  UErrorCode status = U_ZERO_ERROR;
   UTransliterator *trans;
-  VALUE tobj;
+  VALUE transform;
+
+  rb_scan_args(argc, argv, "01", &transform);
+  if (NIL_P(transform)) transform = rb_str_new2("Latin; Lower; NFD; [^[:letter:] [:space:] [0-9] [:punctuation:]] Remove; NFC");
 
   to_utf16(string, str, &slen);
 
@@ -104,7 +107,7 @@ static VALUE unicode_transliterate(VALUE string, VALUE transform) {
 
 void Init_icunicode() {
   rb_define_method(rb_cString, "unicode_sort_key", unicode_sort_key, 0);
-  rb_define_method(rb_cString, "transliterate", unicode_transliterate, 1);
+  rb_define_method(rb_cString, "transliterate", unicode_transliterate, -1);
 
   trans_hash = rb_hash_new();
   rb_global_variable(&trans_hash);

@@ -1,4 +1,6 @@
 *.sw?
 .DS_Store
+*.bundle
+*.o
 pkg
 coverage

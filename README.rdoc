@@ -25,6 +25,13 @@ from the ICU Transliteration API. These are added as simple methods on String.
 
 == Install:
 
+You must install ICU first. You can download the source from http://site.icu-project.org/download,
+or on Mac, you can install with MacPorts:
+
+  sudo port install icu
+
+Then install the gem:
+
   sudo gem install icunicode
 
 == To do:
