@@ -102,7 +102,7 @@ static VALUE unicode_transliterate(int argc, VALUE *argv, VALUE string) {
   trans = get_trans(transform);
   utrans_transUChars(trans, str, &slen, BUF_SIZE, 0, &slen, &status);
 
-  to_utf8(str, slen);
+  return to_utf8(str, slen);
 }
 
 void Init_icunicode() {
